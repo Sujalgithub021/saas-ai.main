@@ -100,13 +100,11 @@ const GenerateImages = () => {
               </div>
             </div>) : (
               <div className='mt-3 h-full'>
-                    <img src={content} alt="Generated Image" 
-                      crossOrigin="anonymous"
-                      className='w-full h-full object-cover rounded-lg'/>
+                <img src={content} alt="Generated Image" 
+                className='w-full h-full object-cover rounded-lg'/>
               </div>
             )
               }
-              
             
       </div>
     </div>
