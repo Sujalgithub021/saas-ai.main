@@ -11,7 +11,12 @@ const app = express()
 
 await connectCloudinary()
 
-app.use(cors())
+app.use(cors({
+  origin: [
+    'https://saas-ai-main.vercel.app',
+    'http://localhost:5173'
+  ]
+}))
 app.use(express.json())
 app.use(clerkMiddleware())
 
