@@ -106,37 +106,24 @@ res.json({success: true, content})
 }
 
 
-export const generateImage = async (req, res)=>{
-    try{
-        const {userId} = req.auth();
-        const {prompt, publish} = req.body;
-        const plan = req.plan;
+export const generateImage = async (req, res) => {
+  try {
+    const { userId } = req.auth();
+    const { prompt, style } = req.body;
 
-        if(plan !== 'premium'){
-            return res.json({success: false, message: "This features is only for premium users"})
-        }
+    
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ' ' + style)}?width=1024&height=1024&nologo=true`;
 
-        const seed = Math.floor(Math.random() * 1000000)
-        const encodedPrompt = encodeURIComponent(prompt)
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&seed=${seed}`
+    
+    await sql`INSERT INTO creations (user_id, prompt, content, type)
+      VALUES (${userId}, ${prompt}, ${imageUrl}, 'image')`;
 
-        const imageResponse = await axios.get(imageUrl, { 
-            responseType: 'arraybuffer',
-            timeout: 120000
-        })
-        
-        const base64Image = `data:image/jpeg;base64,${Buffer.from(imageResponse.data).toString('base64')}`
+    res.json({ success: true, content: imageUrl });
 
-        await sql`INSERT INTO creations (user_id, prompt, content, type, publish)
-        VALUES (${userId}, ${prompt}, ${imageUrl}, 'image', ${publish ?? false})`
-
-        res.json({success: true, content: base64Image})
-
-    } catch (error){
-        console.log(error.message)
-        res.json({success:false, message: error.message})
-    }
-}
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
 
 export const removeImageBackground = async (req, res)=>{
     try{
