@@ -112,8 +112,8 @@ export const generateImage = async (req, res) => {
     const { prompt, style } = req.body;
 
     
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ' ' + style)}?width=1024&height=1024&nologo=true`;
-
+    const seed = Math.floor(Math.random() * 1000000);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ' ' + style)}?width=1024&height=1024&nologo=true&seed=${seed}`;
     
     await sql`INSERT INTO creations (user_id, prompt, content, type)
       VALUES (${userId}, ${prompt}, ${imageUrl}, 'image')`;
