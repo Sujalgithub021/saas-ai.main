@@ -109,24 +109,29 @@ res.json({success: true, content})
 export const generateImage = async (req, res) => {
   try {
     const { userId } = req.auth();
-    const { prompt, publish } = req.body;
+    const { prompt, style, publish } = req.body;
 
     const seed = Math.floor(Math.random() * 1000000);
-    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
-
+    const fullPrompt = encodeURIComponent(`${prompt}, ${style} style`);
     
-    const response = await axios.get(pollinationsUrl, { responseType: 'arraybuffer' });
-    const base64Image = `data:image/jpeg;base64,${Buffer.from(response.data).toString('base64')}`;
+    
+    const response = await axios.get(
+      `https://image.pollinations.ai/prompt/${fullPrompt}?width=512&height=512&nologo=true&seed=${seed}&model=flux`,
+      { 
+        responseType: 'arraybuffer',
+        timeout: 60000 
+      }
+    );
 
+    const base64Image = `data:image/jpeg;base64,${Buffer.from(response.data).toString('base64')}`;
+    
     
     const uploaded = await cloudinary.uploader.upload(base64Image);
-    const imageUrl = uploaded.secure_url;
 
-    
     await sql`INSERT INTO creations (user_id, prompt, content, type, publish)
-      VALUES (${userId}, ${prompt}, ${imageUrl}, 'image', ${publish})`;
+      VALUES (${userId}, ${prompt}, ${uploaded.secure_url}, 'image', ${publish})`;
 
-    res.json({ success: true, content: imageUrl });
+    res.json({ success: true, content: uploaded.secure_url });
 
   } catch (error) {
     console.log(error.message);
