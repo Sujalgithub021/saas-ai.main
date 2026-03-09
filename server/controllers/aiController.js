@@ -109,18 +109,27 @@ res.json({success: true, content})
 export const generateImage = async (req, res) => {
   try {
     const { userId } = req.auth();
-    const { prompt, style } = req.body;
+    const { prompt, publish } = req.body;
+
+    const seed = Math.floor(Math.random() * 1000000);
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
 
     
-    const seed = Math.floor(Math.random() * 1000000);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ' ' + style)}?width=1024&height=1024&nologo=true&seed=${seed}`;
+    const response = await axios.get(pollinationsUrl, { responseType: 'arraybuffer' });
+    const base64Image = `data:image/jpeg;base64,${Buffer.from(response.data).toString('base64')}`;
+
     
-    await sql`INSERT INTO creations (user_id, prompt, content, type)
-      VALUES (${userId}, ${prompt}, ${imageUrl}, 'image')`;
+    const uploaded = await cloudinary.uploader.upload(base64Image);
+    const imageUrl = uploaded.secure_url;
+
+    
+    await sql`INSERT INTO creations (user_id, prompt, content, type, publish)
+      VALUES (${userId}, ${prompt}, ${imageUrl}, 'image', ${publish})`;
 
     res.json({ success: true, content: imageUrl });
 
   } catch (error) {
+    console.log(error.message);
     res.json({ success: false, message: error.message });
   }
 };
