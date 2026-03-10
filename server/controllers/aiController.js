@@ -119,7 +119,7 @@ export const generateImage = async (req, res) => {
     const { prompt, publish } = req.body;
 
     const response = await axios.post(
-      'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev',
+      'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large',
       { inputs: prompt },
       {
         headers: {
