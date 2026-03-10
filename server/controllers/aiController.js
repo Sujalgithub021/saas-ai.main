@@ -119,21 +119,19 @@ export const generateImage = async (req, res) => {
     const { prompt, publish } = req.body;
 
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${process.env.GEMINI_API_KEY}`,
+      'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev',
+      { inputs: prompt },
       {
-        instances: [{ prompt: `${prompt}` }],
-        parameters: {
-          sampleCount: 1,
-          aspectRatio: "1:1",
-        }
-      },
-      {
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        responseType: 'arraybuffer',
         timeout: 60000
       }
     );
 
-    const base64Image = `data:image/png;base64,${response.data.predictions[0].bytesBase64Encoded}`;
+    const base64Image = `data:image/jpeg;base64,${Buffer.from(response.data).toString('base64')}`;
 
     const uploaded = await cloudinary.uploader.upload(base64Image);
 
