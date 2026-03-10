@@ -116,27 +116,25 @@ res.json({success: true, content})
 export const generateImage = async (req, res) => {
   try {
     const { userId } = req.auth();
-    const { prompt, style, publish } = req.body;
+    const { prompt, publish } = req.body;
 
-    const seed = Math.floor(Math.random() * 1000000);
-    const fullPrompt = encodeURIComponent(`${prompt}, ${style} style`);
-    
-    
-    const response = await axios.get(
-  `https://image.pollinations.ai/prompt/${fullPrompt}?width=512&height=512&nologo=true&seed=${seed}&model=flux`,
-  { 
-    responseType: 'arraybuffer',
-    timeout: 60000,
-    headers: {
-      'Referer': 'https://pollinations.ai',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    }
-    }
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${process.env.GEMINI_API_KEY}`,
+      {
+        instances: [{ prompt: `${prompt}` }],
+        parameters: {
+          sampleCount: 1,
+          aspectRatio: "1:1",
+        }
+      },
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 60000
+      }
     );
 
-    const base64Image = `data:image/jpeg;base64,${Buffer.from(response.data).toString('base64')}`;
-    
-    
+    const base64Image = `data:image/png;base64,${response.data.predictions[0].bytesBase64Encoded}`;
+
     const uploaded = await cloudinary.uploader.upload(base64Image);
 
     await sql`INSERT INTO creations (user_id, prompt, content, type, publish)
