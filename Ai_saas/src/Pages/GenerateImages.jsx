@@ -20,25 +20,26 @@ const GenerateImages = () => {
 
     const {getToken} = useAuth() 
     
-    const onSubmitHandler = async (e)=>{
-      e.preventDefault();
-      try {
-        setLoading(true)
+    const onSubmitHandler = async (e) => {
+  e.preventDefault();
+  try {
+    setLoading(true)
 
-        const prompt = `Generate an image of ${input} in the style ${selectedStyle}`
+    const {data} = await axios.post('/api/ai/generate-image', 
+      { prompt: `${input} in ${selectedStyle} style`, publish }, 
+      { headers: { Authorization: `Bearer ${await getToken()}` } }
+    )
 
-        const {data} = await axios.post('/api/ai/generate-image',  {prompt, publish}, {headers: {Authorization: `Bearer ${await getToken()}`}})
-
-      if (data.success) {
-        setContent(data.content)
-      } else{
-        toast.error(data.message)
-      }
-      } catch (error) {
-        toast.error(error.message)
-      }
-      setLoading(false)
-     }
+    if (data.success) {
+      setContent(data.content)
+    } else {
+      toast.error(data.message)
+    }
+  } catch (error) {
+    toast.error(error.message)
+  }
+  setLoading(false)
+}
 
   return (
     <div className='h-full overflow-y-scroll p-6 flex items-start flex-wrap gap-4 text-slate-700'>
