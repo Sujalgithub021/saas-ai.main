@@ -123,11 +123,15 @@ export const generateImage = async (req, res) => {
     
     
     const response = await axios.get(
-      `https://image.pollinations.ai/prompt/${fullPrompt}?width=512&height=512&nologo=true&seed=${seed}&model=flux`,
-      { 
-        responseType: 'arraybuffer',
-        timeout: 60000 
-      }
+  `https://image.pollinations.ai/prompt/${fullPrompt}?width=512&height=512&nologo=true&seed=${seed}&model=flux`,
+  { 
+    responseType: 'arraybuffer',
+    timeout: 60000,
+    headers: {
+      'Referer': 'https://pollinations.ai',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+    }
     );
 
     const base64Image = `data:image/jpeg;base64,${Buffer.from(response.data).toString('base64')}`;
